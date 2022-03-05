@@ -30,7 +30,6 @@ def FORGE = !FABRIC
 if (FORGE) apply plugin: "dev.architectury.architectury-pack200"
 
 apply plugin: "gg.essential.loom"
-apply plugin: "maven-publish"
 apply plugin: "java"
 
 apply plugin: "com.replaymod.preprocess"
@@ -64,6 +63,11 @@ loom {
     }
 }
 
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
 dependencies {
     minecraft("com.mojang:minecraft:" + [
             11800: "1.18",
@@ -75,5 +79,5 @@ dependencies {
     ][mcVersion])
     if (FORGE) forge("net.minecraftforge:forge:1.8.9-11.15.1.2318-1.8.9")
 
-    modImplementation(project(":$mcVersionStr"))
+    modImplementation("xyz.unifycraft.unicore:UniCore-Loader-Stage0-${mcVersionStr}-${mcPlatform}:${projectVersion}")
 }
