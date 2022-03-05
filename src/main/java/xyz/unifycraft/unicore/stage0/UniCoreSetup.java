@@ -23,7 +23,7 @@ public class UniCoreSetup {
     private static File versionDir;
 
     private static Gson gson;
-    private static UniCoreData version;
+    private static UniCoreData data;
 
     public static void initialize() {
         if (initialized) return;
@@ -41,7 +41,7 @@ public class UniCoreSetup {
             File file = new File(versionDir, "data.json");
             String content;
             try {
-                content = fetchUrlContent(System.getProperty("unicore.stage0.version.url", "https://raw.githubusercontent.com/UnifyCraft/UniCore/main/data/v1/data.json"));
+                content = fetchUrlContent(System.getProperty("unicore.stage0.data.url", "https://raw.githubusercontent.com/UnifyCraft/UniCore/main/data/v1/data.json"));
             } catch (Exception e) {
                 if (file.exists()) content = fetchFileContent(file.toPath());
                 else throw new IllegalStateException("Couldn't load data.");
@@ -51,16 +51,15 @@ public class UniCoreSetup {
             if (!raw.isJsonObject()) throw new IllegalStateException("The raw content of the data file was not as expected! Oh no! (type was: " + raw.getClass().getSimpleName() + ")");
             JsonObject json = raw.getAsJsonObject();
             if (!writeToFile(file, gson.toJson(json))) throw new IllegalStateException("Failed to write to data file.");
-            version = gson.fromJson(json, UniCoreData.class);
+            data = gson.fromJson(json, UniCoreData.class);
         }
 
         { // Download the stage 1 loader and load it.
-            String url = version.getLoaderUrl()
-                    .replaceAll("\\{version}", version.getLoaderVersion())
+            String url = data.getLoaderUrl()
+                    .replaceAll("\\{version}", data.getLoaderVersion())
                     .replaceAll("\\{gameversion}", getGameVersion())
                     .replaceAll("\\{platform}", getPlatform());
-            System.out.println("Download: " + url);
-            File file = new File(versionDir, "UniCore-Loader-Stage1-" + getGameVersion() + "-" + getPlatform() + "-" + version.getLoaderVersion() + ".jar");
+            File file = new File(versionDir, "UniCore-Loader-Stage1-" + getGameVersion() + "-" + getPlatform() + "-" + data.getLoaderVersion() + ".jar");
             if (!file.exists()) downloadFile(url, file.toPath());
             addToClasspath(file.toPath());
         }
@@ -178,7 +177,7 @@ public class UniCoreSetup {
         return gson;
     }
 
-    public static UniCoreData getVersion() {
-        return version;
+    public static UniCoreData getData() {
+        return data;
     }
 }
