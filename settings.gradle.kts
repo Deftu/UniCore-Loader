@@ -26,8 +26,13 @@ listOf(
     "1.8.9"
 ).forEach { version ->
     include(":$version")
+    include(":implementations:$version")
     project(":$version").apply {
         projectDir = file("versions/$version")
+        buildFileName = "../../version.gradle"
+    }
+    project(":implementations:$version").apply {
+        projectDir = file("implementations/versions/$version")
         buildFileName = "../../version.gradle"
     }
 }

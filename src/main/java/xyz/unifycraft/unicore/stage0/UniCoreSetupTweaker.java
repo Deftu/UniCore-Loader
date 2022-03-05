@@ -1,4 +1,4 @@
-package xyz.unifycraft.unicore.load0;
+package xyz.unifycraft.unicore.stage0;
 
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.LaunchClassLoader;

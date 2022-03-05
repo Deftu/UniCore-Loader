@@ -41,7 +41,7 @@ preprocess {
 }
 
 group = projectGroup
-archivesBaseName = "UniCore-Loader-Stage0-${mcVersionStr}-${mcPlatform}"
+archivesBaseName = "UniCore-Loader-Stage1-${mcVersionStr}-${mcPlatform}"
 version = projectVersion
 
 java {
@@ -74,14 +74,6 @@ dependencies {
             10809: "de.oceanlabs.mcp:mcp_stable:22-1.8.9"
     ][mcVersion])
     if (FORGE) forge("net.minecraftforge:forge:1.8.9-11.15.1.2318-1.8.9")
+
+    modImplementation(project(":$mcVersionStr"))
 }
-
-/*publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifactId = project.archivesBaseName
-
-            from components.java
-        }
-    }
-}*/

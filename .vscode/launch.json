@@ -13,6 +13,19 @@
       "args": "",
       "env": {},
       "projectName": "1.8.9"
+    },
+    {
+      "type": "java",
+      "name": "Minecraft Client (:implementations:1.8.9)",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/implementations\\versions\\1.8.9/run",
+      "console": "internalConsole",
+      "stopOnEntry": false,
+      "mainClass": "net.fabricmc.devlaunchinjector.Main",
+      "vmArgs": "\"-Dfabric.dli.config\u003dC:\\Deftu\\Projects\\UnifyCraft\\UniCore-Loader\\implementations\\versions\\1.8.9\\.gradle\\loom-cache\\launch.cfg\" \"-Dfabric.dli.env\u003dclient\" \"-Dfabric.dli.main\u003dnet.minecraft.launchwrapper.Launch\"",
+      "args": "",
+      "env": {},
+      "projectName": "implementations:1.8.9"
     }
   ]
 }

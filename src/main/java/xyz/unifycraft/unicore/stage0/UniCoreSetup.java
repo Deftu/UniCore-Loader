@@ -1,7 +1,7 @@
-package xyz.unifycraft.unicore.load0;
+package xyz.unifycraft.unicore.stage0;
 
-//#if FORGE == 1
 import com.google.gson.*;
+//#if FORGE == 1
 import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.common.ForgeVersion;
 //#else
@@ -18,47 +18,54 @@ import java.util.Iterator;
 import java.util.ServiceLoader;
 
 public class UniCoreSetup {
+    private static boolean initialized = false;
     private static File dataDir;
     private static File versionDir;
 
     private static Gson gson;
-    private static UniCoreVersionSchema version;
+    private static UniCoreData version;
 
     public static void initialize() {
-        dataDir = new File(new File("UniCraft"), "UniCore");
+        if (initialized) return;
+        initialized = true;
+        dataDir = new File(new File("UnifyCraft"), "UniCore");
+        if (!dataDir.exists()) dataDir.mkdirs();
         versionDir = new File(dataDir, getGameVersion());
+        if (!versionDir.exists()) versionDir.mkdirs();
 
-        {
+        { // Download/retrieve and map the version schema.
             gson = new GsonBuilder()
                     .setPrettyPrinting()
                     .create();
 
-            File file = new File(versionDir, "version.json");
+            File file = new File(versionDir, "data.json");
             String content;
             try {
-                content = fetchUrlContent(System.getProperty("unicore.load0.version.url", "https://raw.githubusercontent.com/UnifyCraft/UniCore/main/data/version.json"));
+                content = fetchUrlContent(System.getProperty("unicore.stage0.version.url", "https://raw.githubusercontent.com/UnifyCraft/UniCore/main/data/v1/data.json"));
             } catch (Exception e) {
                 if (file.exists()) content = fetchFileContent(file.toPath());
-                else throw new IllegalStateException("Couldn't load versions.");
+                else throw new IllegalStateException("Couldn't load data.");
             }
 
             JsonElement raw = parseJson(content);
-            if (!raw.isJsonObject()) throw new IllegalStateException("The raw content of the version file was not as expected! Oh no! (type was: " + raw.getClass().getSimpleName() + ")");
+            if (!raw.isJsonObject()) throw new IllegalStateException("The raw content of the data file was not as expected! Oh no! (type was: " + raw.getClass().getSimpleName() + ")");
             JsonObject json = raw.getAsJsonObject();
-            version = gson.fromJson(json, UniCoreVersionSchema.class);
+            if (!writeToFile(file, gson.toJson(json))) throw new IllegalStateException("Failed to write to data file.");
+            version = gson.fromJson(json, UniCoreData.class);
         }
 
-        {
-            String url = version.getLoaderDownloadUrl()
+        { // Download the stage 1 loader and load it.
+            String url = version.getLoaderUrl()
                     .replaceAll("\\{version}", version.getLoaderVersion())
                     .replaceAll("\\{gameversion}", getGameVersion())
                     .replaceAll("\\{platform}", getPlatform());
-            File file = new File(versionDir, "UniCore-Loader-" + getGameVersion() + "_" + getPlatform() + "-" + version.getLoaderVersion() + ".jar");
+            System.out.println("Download: " + url);
+            File file = new File(versionDir, "UniCore-Loader-Stage1-" + getGameVersion() + "-" + getPlatform() + "-" + version.getLoaderVersion() + ".jar");
             if (!file.exists()) downloadFile(url, file.toPath());
             addToClasspath(file.toPath());
         }
 
-        {
+        { // Initialize the stage 1 loader.
             ServiceLoader<UniCoreLoader> serviceLoader = ServiceLoader.load(UniCoreLoader.class);
             Iterator<UniCoreLoader> iterator = serviceLoader.iterator();
             UniCoreLoader loader;
@@ -98,6 +105,19 @@ public class UniCoreSetup {
             return builder.toString();
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static boolean writeToFile(File file, String content) {
+        try {
+            if (!file.exists()) file.createNewFile();
+            FileWriter writer = new FileWriter(file);
+            writer.write(content);
+            writer.close();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
     }
 
@@ -158,7 +178,7 @@ public class UniCoreSetup {
         return gson;
     }
 
-    public static UniCoreVersionSchema getVersion() {
+    public static UniCoreData getVersion() {
         return version;
     }
 }
