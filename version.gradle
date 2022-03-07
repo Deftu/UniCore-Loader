@@ -76,10 +76,18 @@ dependencies {
     if (FORGE) forge("net.minecraftforge:forge:1.8.9-11.15.1.2318-1.8.9")
 }
 
+java {
+    withJavadocJar()
+}
+
+artifacts {
+    archives(javadocJar)
+}
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifactId = project.archivesBaseName
+            artifactId = "UniCore-Loader-${mcVersionStr}-${mcPlatform}"
 
             from components.java
         }
