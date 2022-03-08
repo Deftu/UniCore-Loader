@@ -1,6 +1,7 @@
 package xyz.unifycraft.unicore.stage1;
 
 import net.minecraft.launchwrapper.Launch;
+import xyz.deftu.fd.FileDownloader;
 import xyz.unifycraft.unicore.stage0.CopyInputStream;
 import xyz.unifycraft.unicore.stage0.UniCoreData;
 import xyz.unifycraft.unicore.stage0.UniCoreLoaderBase;
@@ -32,22 +33,10 @@ public class UniCoreLoader extends UniCoreLoaderBase {
             File file = new File(versionDir, "UniCore-" + gameVersion + "-" + gamePlatform + "-" + data.getVersion() + ".jar");
             File localFile = new File(versionDir, "UniCore-" + gameVersion + "-" + gamePlatform + "-" + localData.getVersion() + ".jar");
             if (!Objects.equals(localData.getLoaderVersion(), data.getLoaderVersion()) || !localFile.exists()) {
-                HttpURLConnection connection = null;
-                try (FileOutputStream output = new FileOutputStream(localFile)) {
-                    connection = createConnection(url);
-                    try (CopyInputStream stream = new CopyInputStream(connection.getInputStream())) {
-                        if (!Objects.equals(fetchChecksum(stream.createCopy()), fetchChecksum(localFile.toPath()))) {
-                            localFile.delete();
-                            byte[] buffer = new byte[2048];
-                            int read;
-                            while ((read = stream.read(buffer)) > 0) output.write(buffer, 0, read);
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    if (connection != null) connection.disconnect();
-                }
+                FileDownloader fileDownloader = fileDownloaderFactory.create(new File(dataDir, "Downloads"), localFile);
+                fileDownloader.download(url);
+                fileDownloader.validate();
+                fileDownloader.complete(file);
             }
             addToClasspath(Launch.classLoader, file.toPath());
         }

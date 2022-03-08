@@ -64,6 +64,16 @@ loom {
     }
 }
 
+repositories {
+    maven { url("https://s01.oss.sonatype.org/content/groups/public/") }
+    mavenCentral()
+}
+
+configurations {
+    shade
+    implementation.extendsFrom(shade)
+}
+
 dependencies {
     minecraft("com.mojang:minecraft:" + [
             11800: "1.18",
@@ -74,6 +84,7 @@ dependencies {
             10809: "de.oceanlabs.mcp:mcp_stable:22-1.8.9"
     ][mcVersion])
     if (FORGE) forge("net.minecraftforge:forge:1.8.9-11.15.1.2318-1.8.9")
+    shade("xyz.deftu.fd:FileDownloader:1.0.0")
 }
 
 java {
@@ -92,4 +103,12 @@ publishing {
             from components.java
         }
     }
+}
+
+jar.from(configurations.shade.collect { it.isDirectory() ? it : zipTree(it) }) {
+    def i = 0
+    filesMatching("META-INF/NOTICE*") { name = "$name.${i++}" }
+    filesMatching("META-INF/LICENSE*") { name = "$name.${i++}" }
+    filesMatching("META-INF/mods.toml") { name = "$name.${i++}" }
+    filesMatching("LICENSE*") { name = "$name.${i++}" }
 }

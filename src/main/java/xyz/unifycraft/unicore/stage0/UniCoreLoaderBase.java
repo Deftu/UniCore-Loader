@@ -8,9 +8,8 @@ import net.minecraft.launchwrapper.Launch;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import xyz.deftu.fd.FileDownloaderFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.Method;
@@ -19,8 +18,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public abstract class UniCoreLoaderBase {
+    protected static File dataDir = new File("UnifyCraft");
+
     protected final String stage;
     protected final Gson gson;
+    protected final FileDownloaderFactory fileDownloaderFactory;
     //#if MC<=11202
     private final JsonParser jsonParser = new JsonParser();
     //#endif
@@ -30,6 +32,8 @@ public abstract class UniCoreLoaderBase {
         this.gson = new GsonBuilder()
                 .setPrettyPrinting()
                 .create();
+        this.fileDownloaderFactory = FileDownloaderFactory.create()
+                .withUserAgent("Mozilla/5.0 (UniCore Loader)");
     }
 
     protected abstract void initialize();
@@ -57,7 +61,7 @@ public abstract class UniCoreLoaderBase {
      * @param inputStream The input stream that needs to be checked.
      * @return The md5 checksum of the provided file.
      */
-    public final String fetchChecksum(@NotNull InputStream inputStream) {
+    public static String fetchChecksum(@NotNull InputStream inputStream) {
         try {
             return DigestUtils.md5Hex(inputStream);
         } catch (Exception e) {
@@ -72,7 +76,7 @@ public abstract class UniCoreLoaderBase {
      * @param path The path to the file that needs to be checked.
      * @return The md5 checksum of the provided file.
      */
-    public final String fetchChecksum(@NotNull Path path) {
+    public static String fetchChecksum(@NotNull Path path) {
         try (InputStream inputStream = Files.newInputStream(path)) {
             return fetchChecksum(inputStream);
         } catch (Exception e) {
@@ -113,7 +117,7 @@ public abstract class UniCoreLoaderBase {
     }
     //#endif
 
-    public final HttpURLConnection prepareConnection(@NotNull HttpURLConnection connection) {
+    public static HttpURLConnection prepareConnection(@NotNull HttpURLConnection connection) {
         try {
             connection.setRequestMethod("GET");
             connection.addRequestProperty("User-Agent", "Mozilla/5.0 (UniCore Loader)");
@@ -128,7 +132,7 @@ public abstract class UniCoreLoaderBase {
         }
     }
 
-    public final HttpURLConnection createConnection(@NotNull URL url) {
+    public static HttpURLConnection createConnection(@NotNull URL url) {
         try {
             URLConnection connection = url.openConnection();
             if (connection instanceof HttpURLConnection) {
@@ -139,7 +143,7 @@ public abstract class UniCoreLoaderBase {
         }
     }
 
-    public final HttpURLConnection createConnection(@NotNull String url) {
+    public static HttpURLConnection createConnection(@NotNull String url) {
         try {
             URLConnection connection = new URL(url).openConnection();
             if (connection instanceof HttpURLConnection) {
@@ -156,5 +160,9 @@ public abstract class UniCoreLoaderBase {
 
     public Gson getGson() {
         return gson;
+    }
+
+    static {
+        if (!dataDir.exists() && !dataDir.mkdirs()) throw new IllegalStateException("Failed to create UnifyCraft data directory.");
     }
 }

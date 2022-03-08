@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.Launch;
+import xyz.deftu.fd.FileDownloader;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -20,23 +21,20 @@ public class UniCoreLoader extends UniCoreLoaderBase {
     private final String gamePlatform;
     private final ITweaker launchwrapperTweaker;
 
-    private File dataDir;
     private File versionDir;
 
     private UniCoreData localData;
     private UniCoreData data;
 
     public UniCoreLoader(String gameVersion, String gamePlatform, ITweaker launchwrapperTweaker) {
-        super("launchwrapper");
+        super("stage0");
         this.gameVersion = gameVersion;
         this.gamePlatform = gamePlatform;
         this.launchwrapperTweaker = launchwrapperTweaker;
     }
 
     public void initialize() {
-        dataDir = new File(new File("UnifyCraft"), "UniCore");
-        if (!dataDir.exists()) dataDir.mkdirs();
-        versionDir = new File(dataDir, gameVersion);
+        versionDir = new File(new File(dataDir, "UniCore"), gameVersion);
         if (!versionDir.exists()) versionDir.mkdirs();
 
         // Download/retrieve and map the UniCore data.
@@ -69,22 +67,10 @@ public class UniCoreLoader extends UniCoreLoaderBase {
         File stage1File = new File(versionDir, "UniCore-Loader-Stage1-" + gameVersion + "-" + gamePlatform + "-" + data.getLoaderVersion() + ".jar");
         File localStage1File = new File(versionDir, "UniCore-Loader-Stage1-" + gameVersion + "-" + gamePlatform + "-" + localData.getLoaderVersion() + ".jar");
         if (!Objects.equals(localData.getLoaderVersion(), data.getLoaderVersion()) || !localStage1File.exists()) {
-            HttpURLConnection connection = null;
-            try (FileOutputStream output = new FileOutputStream(localStage1File)) {
-                connection = createConnection(url);
-                try (CopyInputStream stream = new CopyInputStream(connection.getInputStream())) {
-                    if (!Objects.equals(fetchChecksum(stream.createCopy()), fetchChecksum(localStage1File.toPath()))) {
-                        localStage1File.delete();
-                        byte[] buffer = new byte[2048];
-                        int read;
-                        while ((read = stream.read(buffer)) > 0) output.write(buffer, 0, read);
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                if (connection != null) connection.disconnect();
-            }
+            FileDownloader fileDownloader = fileDownloaderFactory.create(new File(dataDir, "Downloads"), localStage1File);
+            fileDownloader.download(url);
+            fileDownloader.validate();
+            fileDownloader.complete(stage1File);
         }
         addToClasspath(Launch.classLoader, stage1File.toPath());
         //#if FORGE == 1
