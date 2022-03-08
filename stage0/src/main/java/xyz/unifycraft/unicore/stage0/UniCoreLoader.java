@@ -7,10 +7,7 @@ import net.minecraft.launchwrapper.Launch;
 import xyz.deftu.fd.FileDownloader;
 
 import java.io.*;
-import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Objects;
@@ -42,6 +39,7 @@ public class UniCoreLoader extends UniCoreLoaderBase {
         String fileContent = fetchFileContent(dataFile.toPath());
         String content;
         try {
+            // We're using a GitHub raw URL temporarily!
             content = fetchUrlContent(System.getProperty("unicore.stage0.data.url", "https://raw.githubusercontent.com/UnifyCraft/UniCore/main/data/v1/data.json"));
             if (fileContent == null) fileContent = content;
         } catch (Exception e) {
@@ -52,12 +50,10 @@ public class UniCoreLoader extends UniCoreLoaderBase {
         if (!rawData.isJsonObject())
             throw new IllegalStateException("The raw content of the data file was not as expected! Oh no! (type was: " + rawData.getClass().getSimpleName() + ")");
         JsonObject json = rawData.getAsJsonObject();
-        if (fileContent != null) {
-            JsonElement rawLocalData = parseJson(fileContent);
-            if (!rawLocalData.isJsonObject())
-                throw new IllegalStateException("The raw content of the data file was not as expected! Oh no! (type was: " + rawData.getClass().getSimpleName() + ")");
-            localData = gson.fromJson(rawLocalData.getAsJsonObject(), UniCoreData.class);
-        }
+        JsonElement rawLocalData = parseJson(fileContent);
+        if (!rawLocalData.isJsonObject())
+            throw new IllegalStateException("The raw content of the data file was not as expected! Oh no! (type was: " + rawData.getClass().getSimpleName() + ")");
+        localData = gson.fromJson(rawLocalData.getAsJsonObject(), UniCoreData.class);
         if (!writeToFile(dataFile, gson.toJson(json)))
             throw new IllegalStateException("Failed to write to data file.");
         data = gson.fromJson(json, UniCoreData.class);
@@ -81,10 +77,12 @@ public class UniCoreLoader extends UniCoreLoaderBase {
         UniCoreLoaderBase stage1;
         ServiceLoader<UniCoreLoaderBase> serviceLoader = ServiceLoader.load(UniCoreLoaderBase.class);
         Iterator<UniCoreLoaderBase> serviceIterator = serviceLoader.iterator();
+        // At this point, we shouldn't have more than one implementation of UniCoreLoaderBase present.
         if (serviceIterator.hasNext()) {
             stage1 = serviceIterator.next();
             if (serviceIterator.hasNext()) throw new IllegalStateException("There is more than one stage 1 implementation of the UniCore loader, this is not supported.");
         } else throw new IllegalStateException("There is no stage 1 implementation of the UniCore loader.");
+        if (!Objects.equals(stage1.stage, "stage1")) throw new IllegalStateException("The UniCore loader present doesn't appear to be stage 1...");
         stage1.withProperties(dataDir, versionDir, gameVersion, gamePlatform);
         stage1.withData(data, localData);
         stage1.initialize();

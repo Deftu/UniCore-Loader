@@ -13,8 +13,9 @@ pluginManagement {
 
     resolutionStrategy {
         eachPlugin {
-            when(requested.id.id) {
+            when (requested.id.id) {
                 "com.replaymod.preprocess" -> useModule("com.github.replaymod:preprocessor:${requested.version}")
+                "com.replaymod.preprocess-root" -> useModule("com.github.replaymod:preprocessor:${requested.version}")
             }
         }
     }
@@ -25,14 +26,20 @@ rootProject.name = "UniCore-Loader"
 listOf(
     "1.8.9"
 ).forEach { version ->
-    include(":$version")
-    include(":implementations:$version")
-    project(":$version").apply {
-        projectDir = file("versions/$version")
+    include(":stage0:$version")
+    include(":stage1:$version")
+    include(":stage2:$version")
+
+    project(":stage0:$version").apply {
+        projectDir = file("stage0/versions/$version")
         buildFileName = "../../version.gradle"
     }
-    project(":implementations:$version").apply {
-        projectDir = file("implementations/versions/$version")
+    project(":stage1:$version").apply {
+        projectDir = file("stage1/versions/$version")
+        buildFileName = "../../version.gradle"
+    }
+    project(":stage2:$version").apply {
+        projectDir = file("stage2/versions/$version")
         buildFileName = "../../version.gradle"
     }
 }

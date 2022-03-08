@@ -36,7 +36,7 @@ public class UniCoreLaunchwrapperTweaker implements ITweaker {
     }
 }
 //#else
-//$$ public class UniCoreSetupTweaker implements PreLaunchEntrypoint {
+//$$ public class UniCoreLaunchwrapperTweaker implements PreLaunchEntrypoint {
 //$$     private static UniCoreLoaderBase uniCoreLoader;
 //$$
 //$$     public void onPreLaunch() {

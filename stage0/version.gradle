@@ -30,6 +30,7 @@ def FORGE = !FABRIC
 if (FORGE) apply plugin: "dev.architectury.architectury-pack200"
 
 apply plugin: "gg.essential.loom"
+apply plugin: "maven-publish"
 apply plugin: "java"
 
 apply plugin: "com.replaymod.preprocess"
@@ -40,7 +41,7 @@ preprocess {
 }
 
 group = projectGroup
-archivesBaseName = "UniCore-Loader-Stage1-${mcVersionStr}-${mcPlatform}"
+archivesBaseName = "UniCore-Loader-Stage0-${mcVersionStr}-${mcPlatform}"
 version = projectVersion
 
 java {
@@ -64,8 +65,13 @@ loom {
 }
 
 repositories {
-    mavenLocal()
+    maven { url("https://s01.oss.sonatype.org/content/groups/public/") }
     mavenCentral()
+}
+
+configurations {
+    shade
+    implementation.extendsFrom(shade)
 }
 
 dependencies {
@@ -78,6 +84,41 @@ dependencies {
             10809: "de.oceanlabs.mcp:mcp_stable:22-1.8.9"
     ][mcVersion])
     if (FORGE) forge("net.minecraftforge:forge:1.8.9-11.15.1.2318-1.8.9")
+    shade("xyz.deftu.fd:FileDownloader:1.0.0")
+}
 
-    compileOnly("xyz.unifycraft.unicore:UniCore-Loader-${mcVersionStr}-${mcPlatform}:${projectVersion}")
+processResources {
+    inputs.property("version", projectVersion)
+
+    filesMatching(["fabric.mod.json"]) {
+        expand(
+                "version": projectName
+        )
+    }
+}
+
+java {
+    withJavadocJar()
+}
+
+artifacts {
+    archives(javadocJar)
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = "UniCore-Loader-${mcVersionStr}-${mcPlatform}"
+
+            from components.java
+        }
+    }
+}
+
+jar.from(configurations.shade.collect { it.isDirectory() ? it : zipTree(it) }) {
+    def i = 0
+    filesMatching("META-INF/NOTICE*") { name = "$name.${i++}" }
+    filesMatching("META-INF/LICENSE*") { name = "$name.${i++}" }
+    filesMatching("META-INF/mods.toml") { name = "$name.${i++}" }
+    filesMatching("LICENSE*") { name = "$name.${i++}" }
 }
