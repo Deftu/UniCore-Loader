@@ -1,0 +1,26 @@
+plugins {
+    id("xyz.unifycraft.gradle.multiversion")
+    id("xyz.unifycraft.gradle.loom")
+    id("xyz.unifycraft.gradle.tools")
+    id("xyz.unifycraft.gradle.snippets.shadow")
+    id("maven-publish")
+    id("java")
+}
+
+group = "${projectGroup}.loader"
+archivesBaseName = "UniCore-Loader-${mcData.versionStr}-${mcData.loader.name}".toLowerCase()
+version = projectVersion
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    implementation(project(path: ":launchwrapper:${mcData.versionStr}-${mcData.loader.name}", configuration: "default")) {
+        exclude(module: "minecraft")
+        exclude(module: "mcp_stable")
+        exclude(module: "yarn")
+        exclude(module: "forge")
+    }
+}

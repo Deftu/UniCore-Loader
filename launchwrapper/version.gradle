@@ -1,0 +1,83 @@
+plugins {
+    id("xyz.unifycraft.gradle.multiversion")
+    id("xyz.unifycraft.gradle.loom")
+    id("xyz.unifycraft.gradle.tools")
+    id("xyz.unifycraft.gradle.snippets.shadow")
+    id("maven-publish")
+    id("java")
+}
+
+group = "${projectGroup}.launchwrapper"
+archivesBaseName = "UniCore-Launchwrapper-${mcData.versionStr}-${mcData.loader.name}".toLowerCase()
+version = projectVersion
+
+java.withJavadocJar()
+java.withSourcesJar()
+
+loom.launchConfigs.client.arg("--tweakClass", "xyz.unifycraft.unicore.launchwrapper.UniCoreLaunchwrapperTweaker")
+
+repositories {
+    maven { url("https://s01.oss.sonatype.org/content/groups/public/") }
+    mavenCentral()
+}
+
+configurations {
+    shade
+    implementation.extendsFrom(shade)
+}
+
+dependencies {
+    unishade("xyz.deftu.fd:FileDownloader:1.1.1")
+}
+
+processResources {
+    inputs.property("version", projectVersion)
+
+    filesMatching(["fabric.mod.json"]) {
+        expand(
+                "version": projectVersion
+        )
+    }
+}
+
+unishadowJar {
+    manifest.attributes(
+            "TweakClass": "xyz.unifycraft.unicore.launchwrapper.UniCoreLaunchwrapperTweaker"
+    )
+
+    exclude("LICENSE.md")
+    exclude("pack.mcmeta")
+    exclude("dummyThing")
+    exclude("**/module-info.class")
+    exclude("*.so")
+    exclude("*.dylib")
+    exclude("*.dll")
+    exclude("*.jnilib")
+    exclude("ibxm/**")
+    exclude("com/jcraft/**")
+    exclude("org/lwjgl/**")
+    exclude("net/java/**")
+
+    exclude("META-INF/proguard/**")
+    exclude("META-INF/maven/**")
+    exclude("META-INF/versions/**")
+    exclude("META-INF/com.android.tools/**")
+
+    exclude("**/*.kotlin_metadata")
+    exclude("**/*.kotlin_module")
+    exclude("**/*.kotlin_builtins")
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            group = project.group
+            artifactId = project.archivesBaseName
+            version = project.version
+
+            artifact(unishadowJar)
+            artifact(javadocJar)
+            artifact(sourcesJar)
+        }
+    }
+}

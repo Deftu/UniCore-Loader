@@ -1,0 +1,7 @@
+plugins {
+    id("xyz.unifycraft.gradle.multiversion-root")
+}
+
+preprocess {
+    def forge10809 = createNode("1.8.9-forge", 10809, "srg")
+}
