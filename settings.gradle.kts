@@ -1,19 +1,26 @@
 pluginManagement {
     repositories {
-        mavenCentral()
-        mavenLocal()
+        // Default repositories
         gradlePluginPortal()
+        mavenCentral()
 
-        maven("https://jitpack.io/")
-        maven("https://maven.architectury.dev/")
+        // Repositories
+        maven("https://maven.unifycraft.xyz/releases")
         maven("https://maven.fabricmc.net")
+        maven("https://maven.architectury.dev/")
         maven("https://maven.minecraftforge.net")
-        maven("https://repo.sk1er.club/repository/maven-public/")
+        maven("https://repo.essential.gg/repository/maven-public")
         maven("https://server.bbkr.space/artifactory/libs-release/")
+        maven("https://jitpack.io/")
+
+        // Snapshots
+        maven("https://maven.unifycraft.xyz/snapshots")
+        maven("https://s01.oss.sonatype.org/content/groups/public/")
+        mavenLocal()
     }
 
     plugins {
-        id("xyz.unifycraft.gradle.multiversion-root") version("1.0.0")
+        id("xyz.unifycraft.gradle.multiversion-root") version("1.11.1")
     }
 }
 
